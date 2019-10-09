@@ -4,7 +4,7 @@ var mysql = require('mysql');
 var config = require('../config');
 
 var pool = mysql.createPool({
-  connectionLimit: 10,
+  connectionLimit: 1,
   host: config.host,
   user: config.user,
   password: config.password,
@@ -12,49 +12,36 @@ var pool = mysql.createPool({
   debug: false
 });
 
-
-/* Get all. */
 router.get('/', function (req, res, next) {
-  //res.render('index', { title: 'Express' });
-  //res.sendFile('index.html');
-
-  //query DB for todos and send to dom as json
   pool.query('SELECT * FROM todos', function (error, results, fields) {
     //if (error) throw error;
 
-    res.render('index', {
-
-      results: results
-
+    var users = [];
+    results.forEach(element => {
+      users.push(element.username);
     });
-  });
-});
 
-/* Get all for user */
-router.get('/:username', function (req, res, next) {
-  var username = req.params.username;
-  // console.log(username);
-  // res.send(username);
+    var uniqueUsers = users.filter((item, index) => {
+      return users.indexOf(item) === index;
+    });
 
-  pool.query('SELECT * FROM todos WHERE username = ?', [username], function (error, results, fields) {
-    //if (error) throw error;
-    // ...
-    console.log(results);
-    res.send(results);
-    //res.render('index');
+    res.render('index', {
+      results: results,
+      users: uniqueUsers
+    });
   });
 })
 
-/* Mark todo complete by id */
-router.get('/complete/:id', function (req, res, next) {
-  var id = req.params.id;
+router.get('/:username', function (req, res, next) {
+  var username = req.params.username;
 
-  pool.query('UPDATE todos SET complete = 1 WHERE id = ?', [id], function (error, results, fields) {
+  //short for pool.getconnection > .query > .release
+  pool.query('SELECT * FROM todos WHERE username = ?', [username], function (error, results, fields) {
     //if (error) throw error;
-    // ...
-    //console.log(results);
-    //res.send(results);
-    res.redirect('/');
+
+    res.render('user', {
+      results: results
+    });
   });
 })
 
@@ -69,27 +56,19 @@ router.get('/toggle/:id', function (req, res, next) {
     } else newComplete = 1;
 
     pool.query('UPDATE todos SET complete = ? WHERE id = ?', [newComplete, id], function (error, results, fields) {
-      //res.send(results);
-      // res.render('index', { 
-      //   // user: results[0].username,
-      //   // todo: results[0].todo
-      //   //keys: keys,
-      //   results: results
-      // });
       res.redirect('/');
     });
   });
 })
 
-/* Add todo */
-router.get('/new/:username/:todo', function (req, res, next) {
+/*Adds new Todo */
+router.post('/send', function (req, res) {
+  var newtodo = req.body.newtodo;
+  var username = req.body.username;
 
-  var username = req.params.username;
-  var todo = req.params.todo;
-
-  pool.query('INSERT INTO todos(username,todo, complete) VALUES(?, ?, 0)', [username, todo], function (error, results, fields) {
+  pool.query('INSERT INTO todos(username, todo, complete) VALUES(?, ?, 0)', [username, newtodo], function (error, results, fields) {
     console.log(results);
-    res.send(results);
+    res.redirect('/');
   });
 })
 
@@ -98,16 +77,6 @@ router.get('/delete/:id', function (req, res, next) {
   var id = req.params.id;
 
   pool.query('DELETE FROM todos WHERE id = ?', [id], function (error, results, fields) {
-    res.redirect('/');
-  });
-})
-
-router.post('/send', function (req, res) {
-  var newtodo = req.body.newtodo;
-  var username = req.body.username;
-
-  pool.query('INSERT INTO todos(username, todo, complete) VALUES(?, ?, 0)', [username, newtodo], function (error, results, fields) {
-    console.log(results);
     res.redirect('/');
   });
 })
