@@ -21,15 +21,9 @@ router.get('/', function (req, res, next) {
   //query DB for todos and send to dom as json
   pool.query('SELECT * FROM todos', function (error, results, fields) {
     //if (error) throw error;
-    console.log(results);
-    //res.send(results);
-
-    var keys = Object.keys(results[0]);
 
     res.render('index', {
-      // user: results[0].username,
-      // todo: results[0].todo
-      //keys: keys,
+
       results: results
 
     });

@@ -18,7 +18,9 @@
                     <form>
                         <ul class="list-group">
                             <% for( var i = 0; i < results.length; i++){ %>
-                            <li class="list-group-item font-weight-bold"><%= results[i].username %> -
+                            <li class="list-group-item font-weight-bold"
+                                style="text-decoration:<%= (results[i].complete === 1) ? 'line-through' : 'none' %>;">
+                                <%= results[i].username %> -
                                 <%= results[i].todo %>
                                 <button formaction="/Delete/<%= results[i].id %>" method="POST" name="todo>"
                                     class="btn btn-secondary float-right">Remove</button><button
@@ -58,4 +60,5 @@
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
 </body>
+
 </html>
